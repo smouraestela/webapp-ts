@@ -1,0 +1,68 @@
+version: '3.9'
+services:
+  app:
+      build:
+        context: .          # raiz do projeto webapp-ts
+        dockerfile: Dockerfile
+      image: local/webapp-ts:latest
+      ports:
+        - "3000:3000"
+      deploy:
+        resources:
+          limits:
+            memory: 300m
+
+  db:
+    image: postgres:15
+    container_name: db
+    environment:
+      POSTGRES_PASSWORD: root
+    ports:
+      - "5432:5432"
+    deploy:
+      resources:
+        limits:
+          memory: 400m
+
+  jenkins:
+    image: jenkins/jenkins:lts
+    container_name: jenkins
+    ports:
+      - "8080:8080"
+    volumes:
+      - jenkins-data:/var/jenkins_home
+    deploy:
+      resources:
+        limits:
+          memory: 800m
+
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus:/etc/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--web.enable-remote-write-receiver"
+    deploy:
+      resources:
+        limits:
+          memory: 300m
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports:
+      - "3001:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+    deploy:
+      resources:
+        limits:
+          memory: 300m
+
+volumes:
+  jenkins-data:
+  grafana-data:
